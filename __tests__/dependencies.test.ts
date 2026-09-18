@@ -5,11 +5,49 @@ describe('runtime dependencies', () => {
   test.each([
     [
       'unzip-stream',
-      "require('unzip-stream').Extract({path: require('node:os').tmpdir()})"
+      `
+        const assert = require('node:assert/strict');
+        const fs = require('node:fs');
+        const path = require('node:path');
+        const {Readable} = require('node:stream');
+        const {pipeline} = require('node:stream/promises');
+        const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'unzip-stream-'));
+        process.on('exit', () => fs.rmSync(directory, {recursive: true, force: true}));
+
+        // Both entries contain "abc"; only descriptor.txt uses a data descriptor.
+        const archive = Buffer.from(
+          'UEsDBBQAAAAIAAAAIVzCQSQ1BQAAAAMAAAAJAAAAa25vd24udHh0S0xKBgBQSwMEFAAIAAgAAAAhXAAAAAAAAAAAAAAAAA4AAABkZXNjcmlwdG9yLnR4dEtMSgYAUEsHCMJBJDUFAAAAAwAAAFBLAQIUAxQAAAAIAAAAIVzCQSQ1BQAAAAMAAAAJAAAAAAAAAAAAAACAAQAAAABrbm93bi50eHRQSwECFAMUAAgACAAAACFcwkEkNQUAAAADAAAADgAAAAAAAAAAAAAAgAEsAAAAZGVzY3JpcHRvci50eHRQSwUGAAAAAAIAAgBzAAAAbQAAAAAA',
+          'base64'
+        );
+        pipeline(
+          Readable.from(Array.from(archive, byte => Buffer.from([byte]))),
+          require('unzip-stream').Extract({path: directory})
+        ).then(() => {
+          for (const name of ['known.txt', 'descriptor.txt']) {
+            assert.equal(fs.readFileSync(path.join(directory, name), 'utf8'), 'abc');
+          }
+        }).catch(error => {
+          console.error(error);
+          process.exitCode = 1;
+        });
+      `
     ],
     [
       'binary',
-      "require('binary').parse(Buffer.from('abc')).scan('before', 'b')"
+      `
+        const assert = require('node:assert/strict');
+        const binary = require('binary');
+        const input = Buffer.from('abc');
+        assert.equal(binary.parse(input).scan('before', 'b').vars.before.toString(), 'a');
+        let scanned = false;
+        const stream = binary.stream().scan('before', 'b').tap(vars => {
+          assert.equal(vars.before.toString(), 'a');
+          scanned = true;
+        });
+        stream.write(input);
+        stream.end();
+        process.on('exit', () => assert.equal(scanned, true));
+      `
     ],
     [
       'buffers',
@@ -22,7 +60,7 @@ describe('runtime dependencies', () => {
   ])('%s avoids deprecated Buffer usage', (_dependency, script) => {
     const result = spawnSync(
       process.execPath,
-      ['--throw-deprecation', '--eval', script],
+      ['--pending-deprecation', '--throw-deprecation', '--eval', script],
       {encoding: 'utf8'}
     )
 
