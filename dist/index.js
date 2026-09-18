@@ -67529,7 +67529,7 @@ function MatcherStream(patternDesc, matchFn) {
     this.requiredLength = this.pattern.length;
     if (patternDesc.requiredExtraSize) this.requiredLength += patternDesc.requiredExtraSize;
 
-    this.data = new Buffer('');
+    this.data = Buffer.alloc(0);
     this.bytesSoFar = 0;
 
     this.matchFn = matchFn;
@@ -67572,7 +67572,7 @@ MatcherStream.prototype.checkDataChunk = function (ignoreMatchZero) {
 
     var finished = this.matchFn ? this.matchFn(this.data, this.bytesSoFar) : true;
     if (finished) {
-        this.data = new Buffer('');
+        this.data = Buffer.alloc(0);
         return;
     }
 
@@ -67717,7 +67717,7 @@ function UnzipStream(options) {
     stream.Transform.call(this);
 
     this.options = options || {};
-    this.data = new Buffer('');
+    this.data = Buffer.alloc(0);
     this.state = states.STREAM_START;
     this.skippedBytes = 0;
     this.parsedEntity = null;
@@ -67979,7 +67979,7 @@ UnzipStream.prototype._prepareOutStream = function (vars, entry) {
     };
 
     if (!fileSizeKnown) {
-        var pattern = new Buffer(4);
+        var pattern = Buffer.alloc(4);
         pattern.writeUInt32LE(SIG_DATA_DESCRIPTOR, 0);
         var zip64Mode = vars.extra.zip64Mode;
         var extraSize = zip64Mode ? 20 : 12;
@@ -68335,7 +68335,7 @@ UnzipStream.prototype._parseOrOutput = function (encoding, cb) {
                 this.data = this.data.slice(remaining);
             } else {
                 packet = this.data;
-                this.data = new Buffer('');
+                this.data = Buffer.alloc(0);
             }
 
             this.outStreamInfo.written += packet.length;
@@ -68348,7 +68348,7 @@ UnzipStream.prototype._parseOrOutput = function (encoding, cb) {
             }
         } else {
             var packet = this.data;
-            this.data = new Buffer('');
+            this.data = Buffer.alloc(0);
 
             this.outStreamInfo.written += packet.length;
             var outputStream = this.outStreamInfo.stream;
