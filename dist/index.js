@@ -14531,7 +14531,7 @@ exports.stream = function (input) {
         
         self.scan = function find (name, search) {
             if (typeof search === 'string') {
-                search = new Buffer(search);
+                search = Buffer.from(search);
             }
             else if (!Buffer.isBuffer(search)) {
                 throw new Error('search must be a Buffer or a string');
@@ -14671,7 +14671,7 @@ exports.parse = function parse (buffer) {
     
     self.scan = function (name, search) {
         if (typeof search === 'string') {
-            search = new Buffer(search);
+            search = Buffer.from(search);
         }
         else if (!Buffer.isBuffer(search)) {
             throw new Error('search must be a Buffer or a string');
@@ -16634,13 +16634,13 @@ Buffers.prototype.splice = function (i, howMany) {
             removed.push(buffers[ii].slice(start, start + howMany));
             
             var orig = buffers[ii];
-            //var buf = new Buffer(orig.length - howMany);
-            var buf0 = new Buffer(start);
+            //var buf = Buffer.alloc(orig.length - howMany);
+            var buf0 = Buffer.alloc(start);
             for (var i = 0; i < start; i++) {
                 buf0[i] = orig[i];
             }
             
-            var buf1 = new Buffer(orig.length - start - howMany);
+            var buf1 = Buffer.alloc(orig.length - start - howMany);
             for (var i = start + howMany; i < orig.length; i++) {
                 buf1[ i - howMany - start ] = orig[i]
             }
@@ -16705,7 +16705,7 @@ Buffers.prototype.slice = function (i, j) {
         si ++
     ) { startBytes += buffers[si].length }
     
-    var target = new Buffer(j - i);
+    var target = Buffer.alloc(j - i);
     
     var ti = 0;
     for (var ii = si; ti < j - i && ii < buffers.length; ii++) {
@@ -16752,7 +16752,7 @@ Buffers.prototype.set = function set (i, b) {
 
 Buffers.prototype.indexOf = function (needle, offset) {
     if ("string" === typeof needle) {
-        needle = new Buffer(needle);
+        needle = Buffer.from(needle);
     } else if (needle instanceof Buffer) {
         // already a buffer
     } else {
@@ -39919,7 +39919,7 @@ TunnelingAgent.prototype.createSocket = function createSocket(options, cb) {
   if (connectOptions.proxyAuth) {
     connectOptions.headers = connectOptions.headers || {};
     connectOptions.headers['Proxy-Authorization'] = 'Basic ' +
-        new Buffer(connectOptions.proxyAuth).toString('base64');
+        Buffer.from(connectOptions.proxyAuth).toString('base64');
   }
 
   debug('making CONNECT request');
